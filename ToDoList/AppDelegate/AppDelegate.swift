@@ -5,6 +5,9 @@
 //  Created by adrians.freimanis on 20/04/2023.
 //
 
+
+//There are a lot of issues I cant seem to figure out for some reason the program doesnt recognise the item2 value and much more
+
 import UIKit
 import CoreData
 

@@ -57,41 +57,58 @@ class ToDoListTableViewController: UITableViewController {
     
 
     @IBAction func addNewItemTapped(_ sender: Any) {
-        let alertController = UIAlertController(title: "To do List", message: "Do you want to add new to do list?", preferredStyle: .alert)
+        let alertController = UIAlertController(title: "ADD", message: "Do you want to add new to do list?", preferredStyle: .alert)
         
         alertController.addTextField{
             textInfo in
-            textInfo.placeholder = "Main title"
-            print(textInfo)
+            textInfo.placeholder = "Title"
         }
         
-        let addActionButton = UIAlertAction(title: "Add", style: .default){
-            alertAction in
-            let textField = alertController.textFields?.first
+        alertController.addTextField{
+            textInfo in  textInfo.placeholder = "Main title"
+        }
+
+        let cancelButton = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        
+        let addButton = UIAlertAction(title: "ADD", style: .default){
             
-            let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: self.manageObjectContext!)
+            (action) in
             
-            let list = NSManagedObject(entity: entity!, insertInto: self.manageObjectContext)
-            
-            list.setValue(textField?.text, forKey: "item")
-            self.saveData()
-            
-//            self.ToDos.append(textField!.text!)
-//            self.tableView.reloadData()
+            if let mainT = alertController.textFields?[0].text,
+               let subT = alertController.textFields?[1].text,
+                
+                let input = NSEntityDescription.entity(forEntityName: "TODO", in: self.manageObjectContext!),
+                let list = NSManagedObject(entity: input, insertInto: self.manageObjectContext!) as? ToDo{
+                
+                print("\(mainT), \(subT)")
+                list.setValue(mainT, forKey: "item")
+                list.setValue(subT, forKey: "item2")
+                self.saveData()
+                
+            }else{
+                #warning("Error creating new todo Item")
+               
+            }
         }
         
-        
-        let cancelButton = UIAlertAction(title: "Cancel", style: .destructive)
-        
-        alertController.addAction(addActionButton)
         alertController.addAction(cancelButton)
-        
+        alertController.addAction(addButton)
         present(alertController, animated: true)
+            
+        
     }
     
     
+    //Had some problems here, I cant figure out how to fix this
+    
+    
+    
+    
     // MARK: - Table view data source
-
+    
+    
+    
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
@@ -102,9 +119,11 @@ class ToDoListTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoCell", for: indexPath)
         
-        let todo = ToDoLists[indexPath.row]
-        cell.textLabel?.text = todo.value(forKey: "item") as? String
-        cell.accessoryType = todo.completed ? .checkmark: .none
+        let todoItem = ToDoLists[indexPath.row]
+        
+        cell.textLabel?.text = todoItem.item
+        cell.detailTextLabel?.text = todoItem.item
+        cell.accessoryType = todoItem.completed ? .checkmark: .none
 
         return cell
     }
@@ -114,6 +133,20 @@ class ToDoListTableViewController: UITableViewController {
         ToDoLists[indexPath.row].completed = !ToDoLists[indexPath.row].completed
         saveData()
     }
+    
+    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle{
+        return .delete
+    }
+    
+    /*override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
+        
+        tableView.beginUpdates()
+        
+        ToDoLists.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .fade)
+        tableView.endUpdates()
+    }
+     */
 
     /*
     // Override to support conditional editing of the table view.
@@ -123,19 +156,18 @@ class ToDoListTableViewController: UITableViewController {
     }
     */
 
-    
-    #warning("Delete from manageObjectContext")
-    /*
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
+            manageObjectContext?.delete(ToDoLists[indexPath.row])
             // Delete the row from the data source
             tableView.deleteRows(at: [indexPath], with: .fade)
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+        }
+        saveData()
     }
-    */
+
 
     /*
     // Override to support rearranging the table view.
